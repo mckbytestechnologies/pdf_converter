@@ -33,11 +33,9 @@ class StatementGenerator:
         grouped = self.df.groupby(['Patient ID', 'Patient Name'])
 
         for (patient_id, patient_name), group in grouped:
-            # First page for this patient
             pdf.add_page()
             self._add_first_page_content(pdf, patient_id, patient_name, group)
 
-            # Continuation pages
             if len(group) > 8:
                 remaining_data = group.iloc[8:]
                 page_num = 2
@@ -56,7 +54,6 @@ class StatementGenerator:
 
 
     def _add_first_page_content(self, pdf, patient_id, patient_name, patient_data):
-        # Fixed layout positions
         header_y = 10
         card_y = 10
         address_y = 55
@@ -72,15 +69,11 @@ class StatementGenerator:
         total_balance = patient_data.iloc[0].get('Total Balance', 0.0)
         top_margin = 10
         header_y_start = top_margin
-        
-        # Calculate available width
+
         page_width = pdf.w - 2 * pdf.l_margin
         
-        # Header section layout
         header_left_width = page_width * 0.55
         header_right_width = page_width * 0.45
-        
-    
         
         self._add_header_card(
             pdf, 
@@ -95,12 +88,10 @@ class StatementGenerator:
         # --- ADDRESS SECTION ---
         self._add_patient_address(pdf, address_y, pdf.w * 0.55, patient_data.iloc[0])
         self._add_payment_instructions(pdf, pdf.l_margin + pdf.w * 0.55, payment_y, pdf.w * 0.45)
-        
-        # Page info and checkbox
+
         total_pages = 1 + max(0, (len(patient_data) - 8) // 25)
         self._add_page_info(pdf, total_pages)
         
-        # Pink line separator
         self._add_pink_separator(pdf)
         
         # --- BILLING TABLE SECTION ---
@@ -114,17 +105,15 @@ class StatementGenerator:
         # --- MESSAGE AND SUMMARY SECTION ---
         pdf.set_y(message_start_y)
         self._add_important_message_and_summary(pdf, patient_id, patient_name, patient_data.iloc[0])
-        
-        # --- FOOTER ---
+
         pdf.set_y(footer_start_y)
         self._add_payment_instructions_footer(
         pdf,
         x_pos=pdf.w - 80,
-        y_pos=pdf.h - 40,  # adjust position as needed
+        y_pos=pdf.h - 40,  
         width=60
     )
 
-    
         self._add_footer(pdf)
 
     def _add_continuation_page(self, pdf, patient_id, patient_name, patient_data, page_num, total_pages):
@@ -145,7 +134,6 @@ class StatementGenerator:
     def _add_header(self, pdf, y_pos, width):
         start_y = y_pos
 
-        # Draw a half-width blue line at the top of the header section
         line_height = 2
         pdf.set_draw_color(0, 125, 225)
         pdf.set_fill_color(0, 125, 225)
@@ -153,50 +141,45 @@ class StatementGenerator:
 
         pdf.rect(pdf.l_margin, start_y, border_width, line_height, 'F')
 
-        # Move the y position below the line before adding text
         y_pos += line_height + 2
         pdf.set_xy(pdf.l_margin, y_pos)
 
-        pdf.set_font('Arial', 'B', 12)  # Reduced from 14
-        pdf.multi_cell(width, 5, self.practice_info['name'], ln=1, align='C')  # Reduced line height
-        pdf.multi_cell(width, 6, self.practice_info['doctor'], ln=1, align='C')  # Reduced from 7
+        pdf.set_font('Arial', 'B', 12) 
+        pdf.multi_cell(width, 5, self.practice_info['name'], ln=1, align='C')
+        pdf.multi_cell(width, 6, self.practice_info['doctor'], ln=1, align='C')
         pdf.set_x(pdf.l_margin)
 
-        pdf.set_font('Arial', '', 9)  # Reduced from 10
+        pdf.set_font('Arial', '', 9)
         pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(width, 4, self.practice_info['address'], ln=1, align='C')  # Reduced from 5
+        pdf.multi_cell(width, 4, self.practice_info['address'], ln=1, align='C') 
         pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(width, 4, self.practice_info['city_state_zip'], ln=1, align='C')  # Reduced from 5
+        pdf.multi_cell(width, 4, self.practice_info['city_state_zip'], ln=1, align='C') 
 
-        pdf.ln(3)  # Reduced gap before phone numbers
+        pdf.ln(3) 
         pdf.set_x(pdf.l_margin)
 
-        # Phone numbers with adjusted spacing
         phone_label_width = width * 0.4
         phone_value_width = width * 0.6
-        pdf.set_font('Arial', '', 9)  # Reduced from 10
-        pdf.cell(phone_label_width, 4, "Billing Phone:", ln=0, align='C')  # Reduced from 5
-        pdf.cell(phone_value_width, 4, self.practice_info['billing_phone'], ln=1, align='C')  # Reduced from 5
+        pdf.set_font('Arial', '', 9) 
+        pdf.cell(phone_label_width, 4, "Billing Phone:", ln=0, align='C')  
+        pdf.cell(phone_value_width, 4, self.practice_info['billing_phone'], ln=1, align='C') 
         pdf.set_x(pdf.l_margin)
-        pdf.cell(phone_label_width, 4, "Billing Fax:", ln=0, align='C')  # Reduced from 5
-        pdf.cell(phone_value_width, 4, self.practice_info['billing_fax'], ln=1, align='C')  # Reduced from 5
+        pdf.cell(phone_label_width, 4, "Billing Fax:", ln=0, align='C')  
+        pdf.cell(phone_value_width, 4, self.practice_info['billing_fax'], ln=1, align='C') 
 
         return pdf.get_y() - start_y
 
     def _add_header_card(self, pdf, x_pos, y_pos, card_width, patient_id, patient_name, patient_data):
         start_y = y_pos
         
-        # Define styling variables with reduced sizes
-        line_height = 4  # Reduced from 5
-        small_font = 6   # Reduced from 7
-        bold_font = 7    # Reduced from 8
+        line_height = 4  
+        small_font = 6   
+        bold_font = 7    
         border_color = (0, 0, 200)
         
-        # Set initial position
         pdf.set_xy(x_pos, y_pos)
         pdf.set_draw_color(*border_color)
-        
-        # --- TOP SECTION: Credit Card Header ---
+
         pdf.set_text_color(0, 0, 0)
         pdf.set_font('Arial', 'B', bold_font)
         pdf.cell(card_width, line_height, "IF PAYING BY CREDIT CARD PLEASE FILL OUT BELOW", ln=1, border=1, align='C')
@@ -205,74 +188,62 @@ class StatementGenerator:
         pdf.set_font('Arial', 'B', small_font)
         pdf.cell(card_width, line_height, "CHECK CARD USING FOR PAYMENT", ln=1, border=1, align='C')
         
-        # --- CREDIT CARD LOGOS ---
         logo_y = pdf.get_y()
         logos = ['images/mastercard.png', 'images/discover.png', 'images/amex.png', 'images/visa.png']
-        logo_width = 12  # Reduced from 15
-        logo_height = 6   # Reduced from 8
-        checkbox_size = 2 # Reduced from 3
+        logo_width = 12  
+        logo_height = 6   
+        checkbox_size = 2 
         
-        # Calculate total width needed for logos and checkboxes
+
         total_width = (logo_width + checkbox_size + 2) * len(logos)
         start_x = x_pos + (card_width - total_width) / 2
-        
-        # Draw the container rectangle for logos
-        pdf.rect(x_pos, logo_y, card_width, logo_height + 3, 'D')  # Reduced height
+
+        pdf.rect(x_pos, logo_y, card_width, logo_height + 3, 'D') 
         
         current_x = start_x
         for logo in logos:
-            # Checkbox
+   
             pdf.set_xy(current_x, logo_y + (logo_height - checkbox_size)/2 + 1.5)
             pdf.cell(checkbox_size, checkbox_size, "", border=1, ln=0)
             
-            # Logo image
+
             pdf.image(logo, x=current_x + checkbox_size + 1, y=logo_y + 1.5, w=logo_width, h=logo_height)
             current_x += logo_width + checkbox_size + 2
         
-        pdf.set_y(logo_y + logo_height + 3)  # Reduced spacing
-        
-        # --- CARD DETAILS SECTION ---
+        pdf.set_y(logo_y + logo_height + 3) 
+
         col_width = card_width / 2
         pdf.set_font('Arial', 'B', small_font)
         pdf.set_text_color(0, 0, 0)
-        
-        # Draw the container for card details
+
         details_height = line_height * 3
         pdf.rect(x_pos, pdf.get_y(), card_width, details_height, 'D')
         
-        # Row 1
         pdf.set_x(x_pos)
         pdf.cell(col_width, line_height, "CARD NUMBER", border='LR', ln=0)
         pdf.cell(col_width, line_height, "3 DIGIT SECURITY CODE", border='LR', ln=1)
         
-        # Horizontal line between rows
         pdf.line(x_pos, pdf.get_y(), x_pos + card_width, pdf.get_y())
-        
-        # Row 2
+
         pdf.set_x(x_pos)
         pdf.cell(col_width, line_height, "SIGNATURE", border='LR', ln=0)
         pdf.cell(col_width, line_height, "EXP. DATE", border='LR', ln=1)
-        
-        # Horizontal line between rows
+
         pdf.line(x_pos, pdf.get_y(), x_pos + card_width, pdf.get_y())
-        
-        # Row 3
+
         pdf.set_x(x_pos)
         pdf.cell(col_width, line_height, "NAME ON CARD", border='LR', ln=0)
         pdf.cell(col_width, line_height, "ZIP CODE", border='LR', ln=1)
         
-        # --- PATIENT INFO SECTION ---
         pdf.set_x(x_pos)
         pdf.cell(col_width, line_height, "PATIENT NAME", border=1, ln=0)
         pdf.cell(col_width, line_height, "AMOUNT ENCLOSED/CHARGED", border=1, ln=1)
         
-        # Patient name value
         pdf.set_x(x_pos)
         pdf.set_font('Arial', '', small_font)
         pdf.cell(col_width, line_height, patient_name, border='LRB', ln=0)
         pdf.cell(col_width, line_height, "", border='LRB', ln=1)
         
-        # --- BOTTOM ROW ---
         date_width = card_width * 0.3
         amount_width = card_width * 0.3
         acct_width = card_width * 0.4
@@ -282,34 +253,28 @@ class StatementGenerator:
         amount_due = patient_data.get('Total Balance', 0.0)
         account_no = patient_data.get('Account Number', '')
         
-        # Draw container for bottom row
         pdf.rect(x_pos, pdf.get_y(), card_width, line_height, 'D')
         
-        # Date
         pdf.set_x(x_pos)
         pdf.set_font('Arial', 'B', small_font)
         pdf.cell(date_width, line_height, "STATEMENT DATE", border='R', ln=0)
         
-        # Vertical line
         pdf.line(x_pos + date_width, pdf.get_y(), x_pos + date_width, pdf.get_y() + line_height)
         
-        # Amount
         pdf.set_font('Arial', 'B', small_font)
         pdf.set_text_color(255, 0, 0)
         pdf.cell(amount_width, line_height, "PAY THIS AMOUNT", border='R', ln=0)
         
-        # Vertical line
+
         pdf.line(x_pos + date_width + amount_width, pdf.get_y(), 
                 x_pos + date_width + amount_width, pdf.get_y() + line_height)
-        
-        # Account
+
         pdf.set_font('Arial', 'B', small_font)
         pdf.set_text_color(0, 0, 0) 
         pdf.cell(acct_width, line_height, "ACCOUNT NUMBER", border=0, ln=1)
 
         pdf.rect(x_pos, pdf.get_y(), card_width, line_height, 'D')
-        
-        # Values row
+
         pdf.set_x(x_pos)
         pdf.set_font('Arial', '', small_font)
         pdf.cell(date_width, line_height, date_str, border='1', ln=0)
@@ -321,9 +286,7 @@ class StatementGenerator:
         
         pdf.set_font('Arial', '', small_font)
         pdf.cell(acct_width, line_height, str(account_no), border='1', ln=1)
-
         return pdf.get_y() - start_y
-
 
     def _add_page_info(self, pdf, total_pages):
         pdf.set_font('Arial', '', 8)
@@ -348,58 +311,113 @@ class StatementGenerator:
         pdf.set_draw_color(0, 0, 0)
 
     def _add_patient_address(self, pdf, y_pos, width, patient_data):
-        # pdf.ln(10)
+        import os
+        
         start_y = y_pos
         line_height = 4
         left_indent = 15
+
+        zip_code = str(patient_data.get('ZipCode', '')).strip()
+
         pdf.set_xy(pdf.l_margin, start_y)
         pdf.set_fill_color(0, 125, 225)
         pdf.set_text_color(255, 255, 255)
         pdf.set_font('Arial', 'B', 7)
         pdf.cell(width * 0.8, line_height, "CONFIDENTIALLY ADDRESSED TO:", ln=1, fill=True, align='C')
+
         pdf.set_text_color(0, 0, 0)
         pdf.set_font('Arial', '', 8)
         pdf.set_x(left_indent)
-        pdf.cell(0, 4, "10445 1 MB 0.672 ******************AUTO*MIXED AADC 923", ln=1)
+        pdf.cell(0, 4, f"10445 1 MB 0.672 ******************AUTO*MIXED AADC {zip_code}", ln=1)
+
         pdf.set_x(left_indent)
         pdf.set_font('Arial', '', 9)
         pdf.cell(0, line_height, patient_data.get('Patient Name', ''), ln=1)
-        address_line1 = f"{patient_data.get('Patient Address1', '')}"
-        address_line2 = f"{patient_data.get('City', '')}, {patient_data.get('State', '')} {patient_data.get('ZipCode', '')}"
+
+        address_line1 = patient_data.get('Patient Address1', '')
+        address_line2 = f"{patient_data.get('City', '')}, {patient_data.get('State', '')} {zip_code}"
+
         pdf.set_x(left_indent)
         pdf.cell(0, line_height, address_line1, ln=1)
         pdf.set_x(left_indent)
         pdf.cell(0, line_height, address_line2, ln=1)
 
+     
+        barcode_filename = f"temp_barcode_{zip_code}.png"
+        self._generte_posatnet_barcode_image(zip_code, barcode_filename)
+
+        # Add barcode image
+        barcode_y = pdf.get_y() + 2
+        pdf.image(barcode_filename, x=left_indent, y=barcode_y, w=50, h=10)
+
+        if os.path.exists(barcode_filename):
+            os.remove(barcode_filename)
+
+
+    def _generate_postnet_barcode_image(self, zip_code, filename):
+        """Helper method to generate POSTNET barcode image dynamically"""
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        clean_zip = zip_code.replace('-', '')
+
+        # Calculate checksum
+        def calculate_checksum(zip_str):
+            total = sum(int(d) for d in zip_str if d.isdigit())
+            return (10 - (total % 10)) % 10
+
+        checksum = str(calculate_checksum(clean_zip))
+        full_code = clean_zip + checksum
+
+        # POSTNET digit patterns
+        patterns = {
+            '0': '11000', '1': '00011', '2': '00101', '3': '00110',
+            '4': '01001', '5': '01010', '6': '01100', '7': '10001',
+            '8': '10010', '9': '10100'
+        }
+
+        barcode_pattern = ['1'] 
+        for digit in full_code:
+            barcode_pattern.extend(list(patterns[digit]))
+        barcode_pattern.append('1') 
+        bar_height = [0.125 if bit == '1' else 0.05 for bit in barcode_pattern]
+        bar_positions = np.arange(len(barcode_pattern))
+
+        fig, ax = plt.subplots(figsize=(6, 1))
+        ax.bar(bar_positions, bar_height, width=0.8, color='black')
+        ax.axis('off')
+        ax.set_ylim(0, 0.15)
+        ax.set_xlim(-1, len(barcode_pattern))
+        plt.subplots_adjust(left=0.05, right=0.95)
+
+        plt.savefig(filename, bbox_inches='tight', pad_inches=0.1, dpi=300)
+        plt.close()
+
+
     def _add_payment_instructions(self, pdf, x_pos, y_pos, width):
-        # pdf.ln(20)
         start_y = y_pos
-        line_height = 4  # Reduced from 5
-        left_padding = x_pos + 3  # Reduced from 5
+        line_height = 4 
+        left_padding = x_pos + 3 
         content_width = width - (left_padding - x_pos)
 
-        # Blue header box
         pdf.set_xy(x_pos, start_y)
         pdf.set_fill_color(0, 125, 225)
         pdf.set_text_color(255, 255, 255)
-        pdf.set_font('Arial', 'B', 7)  # Reduced from 8
+        pdf.set_font('Arial', 'B', 7) 
         pdf.cell(width * 0.8, line_height, "MAKE CHECKS PAYABLE AND MAIL TO:", ln=1, fill=True, align='C')
 
-        # Practice name
         pdf.set_text_color(0, 0, 0)
-        pdf.set_font('Arial', 'B', 9)  # Reduced from 10
+        pdf.set_font('Arial', 'B', 9) 
         pdf.set_xy(left_padding, pdf.get_y())
         pdf.multi_cell(content_width, line_height - 1, self.practice_info['name'], align='L')
 
-        # Address
-        pdf.set_font('Arial', '', 9)  # Reduced from 10
+        pdf.set_font('Arial', '', 9) 
         pdf.set_x(left_padding)
         pdf.multi_cell(content_width, line_height - 1, self.practice_info['address'], align='L')
 
         pdf.set_x(left_padding)
         pdf.multi_cell(content_width, line_height - 1, self.practice_info['city_state_zip'], align='L')
 
-        # PayPal section
         image_path = 'images/paypal.png'
         image_width = 8
         image_height = 8
@@ -417,20 +435,18 @@ class StatementGenerator:
 
         start_y = pdf.get_y() + 5
 
-        # Draw image
         pdf.image(image_path, x=x_pos, y=start_y, w=image_width, h=image_height)
 
-        # Draw text
         pdf.set_font('Arial', '', 8)
         pdf.set_xy(text_x, start_y)
 
         for i, line in enumerate(paypal_lines):
             pdf.set_x(text_x)
             if i == len(paypal_lines) - 1:
-                # Last line clickable
-                pdf.set_text_color(0, 0, 255)  # blue link color
+
+                pdf.set_text_color(0, 0, 255) 
                 pdf.cell(text_width, line_height, line, ln=1, link="https://paypal.me/FimPAInc")
-                pdf.set_text_color(0, 0, 0)  # reset to black
+                pdf.set_text_color(0, 0, 0)  
             else:
                 pdf.cell(text_width, line_height, line, ln=1)
 
@@ -443,14 +459,13 @@ class StatementGenerator:
             "Date of Service", "Visit ID", "Description", "CPT", "Charge",
             "Payments Insurance", "Adjustment Patient", "Balance"
         ]
-        # Adjusted column widths to better fit content
+    
         col_widths = [25, 20, 50, 15, 20, 25, 25, 15]
         row_height = 7
 
         table_start_x = pdf.l_margin
         table_start_y = pdf.get_y()
 
-        # --- Draw header background ---
         pdf.set_fill_color(211, 211, 211)
         pdf.set_font('Arial', 'B', 8)
         pdf.set_xy(table_start_x, table_start_y)
@@ -459,17 +474,15 @@ class StatementGenerator:
             pdf.cell(col_widths[i], row_height, header, border=0, align='C', fill=True)
         pdf.ln(row_height)
 
-        # For continuation pages, only draw header border
         if is_continuation:
             pdf.set_draw_color(0, 0, 0)
             pdf.rect(table_start_x, table_start_y, sum(col_widths), row_height)
-            table_start_y += row_height  # Move start position down for data rows
+            table_start_y += row_height 
 
-        # --- Draw table rows (no inside lines) ---
+   
         pdf.set_font('Arial', '', 8)
         pdf.set_fill_color(232, 244, 252)
 
-        # Calculate total content height
         content_height = 0
         row_heights = []
         
@@ -477,19 +490,16 @@ class StatementGenerator:
             description = str(row['Procedure'])
             if pd.notna(row.get('Reference')):
                 description += f"\nREF: {row['Reference']}"
-            
-            # Calculate height for multi-line
+
             desc_lines = max(1, int(pdf.get_string_width(description) / (col_widths[2] - 2)) + 1)
             cell_height = 4 * desc_lines
             row_heights.append(cell_height)
             content_height += cell_height
 
-        # Draw all rows first
         for idx, (_, row) in enumerate(patient_data.iterrows()):
             date_str = row['Date Of Service'].strftime('%m/%d/%Y') if pd.notna(row['Date Of Service']) else ""
-            # Truncate date if too long
             if pdf.get_string_width(date_str) > col_widths[0] - 2:
-                date_str = date_str[:8]  # Just show MM/DD/YY if needed
+                date_str = date_str[:8]  
             
             description = str(row['Procedure'])
             if pd.notna(row.get('Reference')):
@@ -498,10 +508,8 @@ class StatementGenerator:
             cell_height = row_heights[idx]
             y_start = pdf.get_y()
             
-            # Row background
             pdf.rect(table_start_x, y_start, sum(col_widths), cell_height, 'F')
-            
-            # Write text (no borders)
+
             x_pos = table_start_x
             pdf.set_xy(x_pos, y_start)
             pdf.cell(col_widths[0], cell_height, date_str, align='L')
@@ -536,26 +544,18 @@ class StatementGenerator:
 
             pdf.set_y(y_start + cell_height)
 
-        # --- Draw complete outer border around whole table ---
-        # Fixed position where the border should end (just above message section)
-        border_end_y = 190 # Adjust this to match your layout
+        border_end_y = 190 
         current_y = pdf.get_y()
-        
-        # Calculate total height (don't go beyond border_end_y)
+
         total_height = min(border_end_y - table_start_y, current_y + 60)
         
         pdf.set_draw_color(0, 0, 0)
         pdf.rect(table_start_x, table_start_y, sum(col_widths), total_height)
         
-        # Position the cursor for the next section
         if current_y < border_end_y:
             pdf.set_y(border_end_y)
         else:
             pdf.set_y(current_y)
-
-    
- 
-    
 
     def _add_important_message_and_summary(self, pdf, patient_id, patient_name, patient_data):
         message_x = 10
@@ -633,11 +633,10 @@ class StatementGenerator:
 
     def _add_payment_instructions_footer(self, pdf, x_pos, y_pos, width):
         start_y = y_pos
-        line_height = 4  # Reduced from 5
+        line_height = 4
         left_padding = x_pos + 3
         content_width = width - (left_padding - x_pos)
 
-        # PayPal section
         image_path = 'images/paypal.png'
         image_width = 8
         image_height = 8
@@ -655,20 +654,18 @@ class StatementGenerator:
         
         start_y = pdf.get_y() + 5
 
-        # Draw image
         pdf.image(image_path, x=x_pos, y=start_y, w=image_width, h=image_height)
 
-        # Draw text
         pdf.set_font('Arial', '', 8)
         pdf.set_xy(text_x, start_y)
         for line in paypal_lines:
             pdf.set_x(text_x)
             if line == "Paypal.me/FimPAInc":
-                pdf.set_text_color(0, 0, 255)  # Make link blue
-                pdf.set_font('', 'U')  # Underline
+                pdf.set_text_color(0, 0, 255) 
+                pdf.set_font('', 'U') 
                 pdf.cell(text_width, line_height, line, ln=1, link="https://paypal.me/FimPAInc")
-                pdf.set_text_color(0, 0, 0)  # Reset color
-                pdf.set_font('Arial', '', 8)  # Reset font
+                pdf.set_text_color(0, 0, 0)  
+                pdf.set_font('Arial', '', 8)
             else:
                 pdf.cell(text_width, line_height, line, ln=1)
 
@@ -680,13 +677,10 @@ class StatementGenerator:
         bottom_margin = 10
         footer_y = pdf.h - FOOTER_HEIGHT - bottom_margin
 
-        
-
-        # Left/middle column: Thank You message
         pdf.set_y(footer_y)
-        pdf.set_x(30)  # Keep it to the left so it doesn't overlap
+        pdf.set_x(30)  
         pdf.set_font('Arial', 'I', 10)
-        pdf.cell(pdf.w - 80, 5, "Thank You from the Staff at", ln=1, align='C')  # leave space on right
+        pdf.cell(pdf.w - 80, 5, "Thank You from the Staff at", ln=1, align='C') 
         pdf.set_x(30)
         pdf.set_font('Arial', 'B', 10)
         pdf.cell(pdf.w - 80, 5, self.practice_info['name'], ln=1, align='C')
@@ -694,7 +688,6 @@ class StatementGenerator:
         pdf.set_font('Arial', 'B', 9)
         pdf.cell(pdf.w - 80, 5, self.practice_info['doctor'], ln=1, align='C')
 
-        # Combine address and city/state/zip into one line
         pdf.set_font('Arial', '', 9)
         pdf.set_x(30)
         pdf.cell(
@@ -704,9 +697,6 @@ class StatementGenerator:
             ln=1,
             align='C'
         )
-
-
-
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
